@@ -34,7 +34,7 @@ import org.springframework.web.context.WebApplicationContext;
 
 @SpringBootTest
 @AutoConfigureMockMvc
-public class RegistrationControllerTest {
+public class    RegistrationControllerTest {
 
     @Autowired
     private MockMvc mockMvc;
@@ -349,6 +349,7 @@ public class RegistrationControllerTest {
         dto.setPassword("test_password123");
         dto.setFirstName("firstName");
         dto.setLastName("lastName");
+        dto.setTerms(true);
         return dto;
     }
 }

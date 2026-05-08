@@ -11,7 +11,6 @@ import org.springframework.util.StringUtils;
 
 @Component
 @Slf4j
-@RequiredArgsConstructor
 public class ControllerUtils {
 
     public static final String ACTIVE_MAIN_SECTION = "activeMainSection";
