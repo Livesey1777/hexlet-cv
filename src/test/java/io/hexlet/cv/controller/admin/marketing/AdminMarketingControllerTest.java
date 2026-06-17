@@ -868,7 +868,7 @@ public class AdminMarketingControllerTest {
                 "articles,0"
         })
         void shouldUpdateDisplayOrderAndReturn200(String section, int order) throws Exception {
-            var body = Map.of("displayOrder", order);
+            var body = Map.of("display_order", order);
 
             mockMvc.perform(put("/admin/marketing/" + section + "/1/display-order")
                             .contentType(MediaType.APPLICATION_JSON)
@@ -881,7 +881,7 @@ public class AdminMarketingControllerTest {
 
         @Test
         void shouldRejectNegativeDisplayOrder() throws Exception {
-            var body = Map.of("displayOrder", -1);
+            var body = Map.of("display_order", -1);
 
             mockMvc.perform(put("/admin/marketing/articles/1/display-order")
                             .contentType(MediaType.APPLICATION_JSON)
@@ -894,7 +894,7 @@ public class AdminMarketingControllerTest {
         @Test
         void shouldRejectNullDisplayOrder() throws Exception {
             var body = new HashMap<String, Object>();
-            body.put("displayOrder", null);
+            body.put("display_order", null);
 
             mockMvc.perform(put("/admin/marketing/articles/1/display-order")
                             .contentType(MediaType.APPLICATION_JSON)
@@ -907,7 +907,7 @@ public class AdminMarketingControllerTest {
         void shouldReturn401WhenUpdatingDisplayOrderWithoutAuth() throws Exception {
             mockMvc.perform(put("/admin/marketing/articles/1/display-order")
                             .contentType(MediaType.APPLICATION_JSON)
-                            .content(objectMapper.writeValueAsString(Map.of("displayOrder", 1))))
+                            .content(objectMapper.writeValueAsString(Map.of("display_order", 1))))
                     .andExpect(status().isUnauthorized());
         }
 
@@ -915,7 +915,7 @@ public class AdminMarketingControllerTest {
         void shouldReturn403WhenUpdatingDisplayOrderAsNonAdmin() throws Exception {
             mockMvc.perform(put("/admin/marketing/articles/1/display-order")
                             .contentType(MediaType.APPLICATION_JSON)
-                            .content(objectMapper.writeValueAsString(Map.of("displayOrder", 1)))
+                            .content(objectMapper.writeValueAsString(Map.of("display_order", 1)))
                             .with(user("user").roles("USER")))
                     .andExpect(status().isForbidden());
         }
@@ -973,7 +973,7 @@ public class AdminMarketingControllerTest {
 
         @Test
         void shouldReturn404ForUnknownDisplayOrderSection() throws Exception {
-            var body = Map.of("displayOrder", 1);
+            var body = Map.of("display_order", 1);
 
             mockMvc.perform(put("/admin/marketing/unknown/1/display-order")
                             .contentType(MediaType.APPLICATION_JSON)
