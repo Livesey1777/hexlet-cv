@@ -3,10 +3,24 @@ package io.hexlet.cv.controller.admin.marketing;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.github.inertia4j.spring.Inertia;
 import io.hexlet.cv.component.DataInitializer;
-import io.hexlet.cv.dto.marketing.*;
+import io.hexlet.cv.dto.marketing.ArticleCreateDto;
+import io.hexlet.cv.dto.marketing.ArticleUpdateDto;
+import io.hexlet.cv.dto.marketing.PricingCreateDto;
+import io.hexlet.cv.dto.marketing.PricingUpdateDto;
+import io.hexlet.cv.dto.marketing.ReviewCreateDto;
+import io.hexlet.cv.dto.marketing.ReviewUpdateDto;
+import io.hexlet.cv.dto.marketing.StoryCreateDto;
+import io.hexlet.cv.dto.marketing.StoryUpdateDto;
+import io.hexlet.cv.dto.marketing.TeamCreateDto;
+import io.hexlet.cv.dto.marketing.TeamUpdateDto;
 import io.hexlet.cv.model.enums.TeamMemberType;
 import io.hexlet.cv.model.enums.TeamPosition;
-import io.hexlet.cv.service.*;
+import io.hexlet.cv.service.ArticleService;
+import io.hexlet.cv.service.EnumService;
+import io.hexlet.cv.service.PricingPlanService;
+import io.hexlet.cv.service.ReviewService;
+import io.hexlet.cv.service.StoryService;
+import io.hexlet.cv.service.TeamService;
 import io.hexlet.cv.util.ControllerUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -31,19 +45,27 @@ import java.util.List;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyMap;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @SpringBootTest
 @AutoConfigureMockMvc
 public class AdminMarketingControllerTest {
 
     @Autowired
-    MockMvc mockMvc;
+    private MockMvc mockMvc;
 
     @Autowired
     private ObjectMapper objectMapper;
@@ -55,7 +77,7 @@ public class AdminMarketingControllerTest {
     private Inertia inertia;
 
     @MockitoBean
-    public EnumService enumService;
+    private EnumService enumService;
 
     @MockitoBean
     private ArticleService articleService;
@@ -106,11 +128,11 @@ public class AdminMarketingControllerTest {
 
     @ParameterizedTest
     @CsvSource({
-            SECTION_ARTICLES + ", Admin/Marketing/Articles/Index, " + SECTION_ARTICLES,
-            SECTION_STORIES + ",  Admin/Marketing/Stories/Index,  " + SECTION_STORIES,
-            SECTION_REVIEWS + ",  Admin/Marketing/Reviews/Index,  " + SECTION_REVIEWS,
-            SECTION_TEAM + ",     Admin/Marketing/Team/Index,     " + SECTION_TEAM,
-            SECTION_PRICING + ",  Admin/Marketing/Pricing/Index,  " + SECTION_PRICING
+        SECTION_ARTICLES + ", Admin/Marketing/Articles/Index, " + SECTION_ARTICLES,
+        SECTION_STORIES + ",  Admin/Marketing/Stories/Index,  " + SECTION_STORIES,
+        SECTION_REVIEWS + ",  Admin/Marketing/Reviews/Index,  " + SECTION_REVIEWS,
+        SECTION_TEAM + ",     Admin/Marketing/Team/Index,     " + SECTION_TEAM,
+        SECTION_PRICING + ",  Admin/Marketing/Pricing/Index,  " + SECTION_PRICING
     })
     void shouldRenderIndexPageForSection(String section, String componentName, String propKey) throws Exception {
         mockPageForSection(section);
@@ -146,11 +168,11 @@ public class AdminMarketingControllerTest {
 
     @ParameterizedTest
     @CsvSource({
-            SECTION_ARTICLES + ", Admin/Marketing/Articles/Create",
-            SECTION_STORIES + ",  Admin/Marketing/Stories/Create",
-            SECTION_REVIEWS + ",  Admin/Marketing/Reviews/Create",
-            SECTION_TEAM + ",     Admin/Marketing/Team/Create",
-            SECTION_PRICING + ",  Admin/Marketing/Pricing/Create"
+        SECTION_ARTICLES + ", Admin/Marketing/Articles/Create",
+        SECTION_STORIES + ",  Admin/Marketing/Stories/Create",
+        SECTION_REVIEWS + ",  Admin/Marketing/Reviews/Create",
+        SECTION_TEAM + ",     Admin/Marketing/Team/Create",
+        SECTION_PRICING + ",  Admin/Marketing/Pricing/Create"
     })
     void shouldRenderCreatePageForSection(String section, String componentName) throws Exception {
         mockMvc.perform(get(sectionPath(section) + "/create")
@@ -159,7 +181,9 @@ public class AdminMarketingControllerTest {
 
         verify(controllerUtils).createMarketingProps(section);
         verify(inertia).render(eq(componentName), anyMap());
-        if (section.equals(SECTION_TEAM)) verify(enumService).getTeamEnums();
+        if (section.equals(SECTION_TEAM)) {
+            verify(enumService).getTeamEnums();
+        }
     }
 
     @Test
@@ -172,11 +196,11 @@ public class AdminMarketingControllerTest {
 
     @ParameterizedTest
     @CsvSource({
-            SECTION_ARTICLES + ", Admin/Marketing/Articles/Edit",
-            SECTION_STORIES + ",  Admin/Marketing/Stories/Edit",
-            SECTION_REVIEWS + ",  Admin/Marketing/Reviews/Edit",
-            SECTION_TEAM + ",     Admin/Marketing/Team/Edit",
-            SECTION_PRICING + ",  Admin/Marketing/Pricing/Edit"
+        SECTION_ARTICLES + ", Admin/Marketing/Articles/Edit",
+        SECTION_STORIES + ",  Admin/Marketing/Stories/Edit",
+        SECTION_REVIEWS + ",  Admin/Marketing/Reviews/Edit",
+        SECTION_TEAM + ",     Admin/Marketing/Team/Edit",
+        SECTION_PRICING + ",  Admin/Marketing/Pricing/Edit"
     })
     void shouldRenderEditPageForSection(String section, String componentName) throws Exception {
         mockEntityForSection(section, 1L);
@@ -681,11 +705,11 @@ public class AdminMarketingControllerTest {
 
     @ParameterizedTest
     @CsvSource({
-            SECTION_ARTICLES + "," + MARKETING_BASE_PATH + "/" + SECTION_ARTICLES,
-            SECTION_STORIES + "," + MARKETING_BASE_PATH + "/" + SECTION_STORIES,
-            SECTION_REVIEWS + "," + MARKETING_BASE_PATH + "/" + SECTION_REVIEWS,
-            SECTION_TEAM + "," + MARKETING_BASE_PATH + "/" + SECTION_TEAM,
-            SECTION_PRICING + "," + MARKETING_BASE_PATH + "/" + SECTION_PRICING
+        SECTION_ARTICLES + "," + MARKETING_BASE_PATH + "/" + SECTION_ARTICLES,
+        SECTION_STORIES + "," + MARKETING_BASE_PATH + "/" + SECTION_STORIES,
+        SECTION_REVIEWS + "," + MARKETING_BASE_PATH + "/" + SECTION_REVIEWS,
+        SECTION_TEAM + "," + MARKETING_BASE_PATH + "/" + SECTION_TEAM,
+        SECTION_PRICING + "," + MARKETING_BASE_PATH + "/" + SECTION_PRICING
     })
     void shouldDeleteAndRedirect(String section, String redirectUrl) throws Exception {
         mockMvc.perform(delete(sectionPath(section) + "/1")
@@ -713,10 +737,10 @@ public class AdminMarketingControllerTest {
 
     @ParameterizedTest
     @CsvSource({
-            SECTION_ARTICLES + "," + MARKETING_BASE_PATH + "/" + SECTION_ARTICLES,
-            SECTION_STORIES + "," + MARKETING_BASE_PATH + "/" + SECTION_STORIES,
-            SECTION_REVIEWS + "," + MARKETING_BASE_PATH + "/" + SECTION_REVIEWS,
-            SECTION_TEAM + "," + MARKETING_BASE_PATH + "/" + SECTION_TEAM
+        SECTION_ARTICLES + "," + MARKETING_BASE_PATH + "/" + SECTION_ARTICLES,
+        SECTION_STORIES + "," + MARKETING_BASE_PATH + "/" + SECTION_STORIES,
+        SECTION_REVIEWS + "," + MARKETING_BASE_PATH + "/" + SECTION_REVIEWS,
+        SECTION_TEAM + "," + MARKETING_BASE_PATH + "/" + SECTION_TEAM
     })
     void shouldTogglePublishAndRedirect(String section, String redirectUrl) throws Exception {
         mockMvc.perform(post(sectionPath(section) + "/1/toggle-publish")
@@ -729,10 +753,10 @@ public class AdminMarketingControllerTest {
 
     @ParameterizedTest
     @CsvSource({
-            SECTION_ARTICLES,
-            SECTION_STORIES,
-            SECTION_REVIEWS,
-            SECTION_TEAM
+        SECTION_ARTICLES,
+        SECTION_STORIES,
+        SECTION_REVIEWS,
+        SECTION_TEAM
     })
     void shouldToggleHomepageAndRedirectToHomeComponents(String section) throws Exception {
         mockMvc.perform(post(sectionPath(section) + "/1/toggle-homepage")
@@ -753,11 +777,11 @@ public class AdminMarketingControllerTest {
 
     @ParameterizedTest
     @CsvSource({
-            SECTION_ARTICLES + ",3",
-            SECTION_STORIES + ",3",
-            SECTION_REVIEWS + ",3",
-            SECTION_TEAM + ",3",
-            SECTION_ARTICLES + ",0"
+        SECTION_ARTICLES + ",3",
+        SECTION_STORIES + ",3",
+        SECTION_REVIEWS + ",3",
+        SECTION_TEAM + ",3",
+        SECTION_ARTICLES + ",0"
     })
     void shouldUpdateDisplayOrderAndReturn200(String section, int order) throws Exception {
         var body = Map.of("display_order", order);
@@ -874,6 +898,7 @@ public class AdminMarketingControllerTest {
                     .thenReturn(new PageImpl<>(List.of(), PageRequest.of(0, 20), 0));
             case SECTION_PRICING -> when(pricingPlanService.getAllPricing(any(Pageable.class)))
                     .thenReturn(new PageImpl<>(List.of(), PageRequest.of(0, 20), 0));
+            default -> { }
         }
     }
 
@@ -884,6 +909,7 @@ public class AdminMarketingControllerTest {
             case SECTION_REVIEWS -> verify(reviewService).getAllReviews(any(Pageable.class));
             case SECTION_TEAM -> verify(teamService).getAllTeamMembers(any(Pageable.class));
             case SECTION_PRICING -> verify(pricingPlanService).getAllPricing(any(Pageable.class));
+            default -> { }
         }
     }
 
@@ -894,6 +920,7 @@ public class AdminMarketingControllerTest {
             case SECTION_REVIEWS -> when(reviewService.getReviewById(id)).thenReturn(null);
             case SECTION_TEAM -> when(teamService.getTeamMemberById(id)).thenReturn(null);
             case SECTION_PRICING -> when(pricingPlanService.getPricingById(id)).thenReturn(null);
+            default -> { }
         }
     }
 
@@ -904,6 +931,7 @@ public class AdminMarketingControllerTest {
             case SECTION_REVIEWS -> verify(reviewService).deleteReview(id);
             case SECTION_TEAM -> verify(teamService).deleteTeamMember(id);
             case SECTION_PRICING -> verify(pricingPlanService).deletePricing(id);
+            default -> { }
         }
     }
 
@@ -913,6 +941,7 @@ public class AdminMarketingControllerTest {
             case SECTION_STORIES -> verify(storyService).togglePublish(id);
             case SECTION_REVIEWS -> verify(reviewService).togglePublish(id);
             case SECTION_TEAM -> verify(teamService).togglePublish(id);
+            default -> { }
         }
     }
 
@@ -922,6 +951,7 @@ public class AdminMarketingControllerTest {
             case SECTION_STORIES -> verify(storyService).toggleStoryHomepageVisibility(id);
             case SECTION_REVIEWS -> verify(reviewService).toggleReviewHomepageVisibility(id);
             case SECTION_TEAM -> verify(teamService).toggleTeamMemberHomepageVisibility(id);
+            default -> { }
         }
     }
 
@@ -931,6 +961,7 @@ public class AdminMarketingControllerTest {
             case SECTION_STORIES -> verify(storyService).updateStoryDisplayOrder(id, order);
             case SECTION_REVIEWS -> verify(reviewService).updateReviewDisplayOrder(id, order);
             case SECTION_TEAM -> verify(teamService).updateTeamMemberDisplayOrder(id, order);
+            default -> { }
         }
     }
 }
